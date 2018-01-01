@@ -8,6 +8,10 @@ public class GrantFactory {
         }
         if (grantType.equalsIgnoreCase("ClientCredentialsGrant")){
             return new ClientCredentialsGrant(url, parameters, type, headers, body);
+        } else if (grantType.equalsIgnoreCase("ResourceOwnerGrant")) {
+            return null;
+        } else if (grantType.equalsIgnoreCase("AuthorizationCodeGrant")) {
+            return null;
         }
 
         return null;

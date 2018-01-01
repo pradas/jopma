@@ -1,6 +1,7 @@
 package main.java.com.pradas.jopma.protocol;
 
 import main.java.com.pradas.jopma.artifacts.*;
+import main.java.com.pradas.jopma.utils.MPILogicFilesPath;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,12 +14,21 @@ public class ClientCredentialsGrant implements Grant {
     private String body;
     private String result;
 
+    private final MPILogicFilesPath filesPath;
+
     public String getResult() {
         return result;
     }
 
     public ClientCredentialsGrant(String url, String parameters, String type, String headers, String body) {
         super();
+
+        filesPath = new MPILogicFilesPath(
+                "src/definitions/clientcredentialsgrant/oauth-constraints.db",
+                "src/definitions/clientcredentialsgrant/oauth-behaviour.db",
+                "src/definitions/db-connection.txt",
+                "src/definitions/clientcredentialsgrant/oauth-db-map.txt"
+        );
 
         this.url = url;
         this.parameters = parameters;
@@ -56,7 +66,7 @@ public class ClientCredentialsGrant implements Grant {
         flows.put(saveToken, flowsSaveToken);
         flows.put(doRequest, flowsDoRequest);
 
-        ProcessModelImpl pmi = new MPILogicProcessModel(flows, start, doRequest);
+        ProcessModelImpl pmi = new MPILogicProcessModel(filesPath, flows, start, doRequest);
 
         ((MPILogicInputTask) start).addArguments(new Object[]{url, parameters, headers, type, body});
 

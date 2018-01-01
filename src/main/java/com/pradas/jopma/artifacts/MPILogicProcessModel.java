@@ -7,6 +7,7 @@ import edu.upc.mpi.operationexecutor.DataInitializerFinalizer;
 import edu.upc.mpi.operationexecutor.dataservice.sql.SQLDataController;
 import edu.upc.mpi.operationexecutor.logicoperationexecutor.ProcessExecutor;
 import main.java.com.pradas.jopma.utils.JSONUtils;
+import main.java.com.pradas.jopma.utils.MPILogicFilesPath;
 import main.java.com.pradas.jopma.utils.Request;
 import main.java.com.pradas.jopma.utils.StringUtils;
 
@@ -16,14 +17,20 @@ import java.util.*;
 
 public class MPILogicProcessModel extends ProcessModelImpl {
 
-    private final File umlSchema = new File("EXEMPLE/oauth-constraints.db");        //Restriccions OCL del sistema
-    private final File behaviourSchema = new File("EXEMPLE/oauth-behaviour.db");    //Operacions el sistema
-    private final File dbConnection = new File("EXEMPLE/db-connection.txt");        //Connexió MySQL
-    private final File umlSchemaToDataMap = new File("EXEMPLE/oauth-db-map.txt");   //Mapping classes UML a taules SQL
+    private final File umlSchema;        //Restriccions OCL del sistema
+    private final File behaviourSchema;    //Operacions el sistema
+    private final File dbConnection;        //Connexió MySQL
+    private final File umlSchemaToDataMap;   //Mapping classes UML a taules SQL
     private ProcessExecutor processExecutor;
 
-    public MPILogicProcessModel(HashMap<NodeImpl, ArrayList<NodeImpl>> flows, NodeImpl startNode, NodeImpl endNode) {
+    public MPILogicProcessModel(MPILogicFilesPath filesPath, HashMap<NodeImpl, ArrayList<NodeImpl>> flows, NodeImpl startNode, NodeImpl endNode) {
         super(flows, startNode, endNode);
+
+        umlSchema = new File(filesPath.getUmlSchema());        //Restriccions OCL del sistema
+        behaviourSchema = new File(filesPath.getBehaviourSchema());    //Operacions el sistema
+        dbConnection = new File(filesPath.getDbConnection());        //Connexió MySQL
+        umlSchemaToDataMap = new File(filesPath.getUmlSchemaToDataMap());   //Mapping classes UML a taules SQL
+
 
         try {
             DataInitializerFinalizer dataInitializer = new DataInitializerFinalizer(){
