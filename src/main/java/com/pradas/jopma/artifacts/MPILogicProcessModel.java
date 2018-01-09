@@ -21,6 +21,7 @@ public class MPILogicProcessModel extends ProcessModelImpl {
     private final File behaviourSchema;    //Operacions el sistema
     private final File dbConnection;        //Connexió MySQL
     private final File umlSchemaToDataMap;   //Mapping classes UML a taules SQL
+    private final String oauthClientInsert;         //insert client
     private ProcessExecutor processExecutor;
 
     public MPILogicProcessModel(MPILogicFilesPath filesPath, HashMap<NodeImpl, ArrayList<NodeImpl>> flows, NodeImpl startNode, NodeImpl endNode) {
@@ -30,6 +31,7 @@ public class MPILogicProcessModel extends ProcessModelImpl {
         behaviourSchema = new File(filesPath.getBehaviourSchema());    //Operacions el sistema
         dbConnection = new File(filesPath.getDbConnection());        //Connexió MySQL
         umlSchemaToDataMap = new File(filesPath.getUmlSchemaToDataMap());   //Mapping classes UML a taules SQL
+        oauthClientInsert = filesPath.getOauthClientInsert();
 
 
         try {
@@ -42,9 +44,7 @@ public class MPILogicProcessModel extends ProcessModelImpl {
                     sqlStatement+="truncate table `client`;";
                     //sqlStatement+="truncate table `token`;";
                     sqlStatement+="truncate table `request`;";
-                    sqlStatement+="INSERT INTO `client` VALUES ('2','client_credentials'," +
-                            "'meHv3ApE6Gbcow2TQjlijUHb23GKSWpHhL2fW9Bx'," +
-                            "'http://ec2-52-56-227-247.eu-west-2.compute.amazonaws.com/oauth/token','');";
+                    sqlStatement+= oauthClientInsert;
 
                     sqlDataController.establishConnection();
                     sqlDataController.executeStatement(sqlStatement);
@@ -77,6 +77,33 @@ public class MPILogicProcessModel extends ProcessModelImpl {
     }
 
     @Override
+    public Boolean hasValidToken() {
+        NodeImpl validToken = null;
+        for ( NodeImpl key : flows.keySet() ) {
+            if (key.getName() == "hasvalidtoken") {
+                validToken = key;
+            }
+        }
+        ((MPILogicTask) validToken).setProcessExecutor(processExecutor);
+        validToken.execute();
+        return (Boolean) validToken.getResult();
+    }
+
+    @Override
+    public Boolean hasToken() {
+        NodeImpl hasToken = new MPILogicXORTask("gettoken");
+        ((MPILogicTask) hasToken).setProcessExecutor(processExecutor);
+        List<Atom> temp = null;
+        try {
+            temp = processExecutor.executeOperation("gettoken", new Object[]{});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //hasToken.execute();
+        return (Boolean) hasToken.getResult();
+    }
+
+    @Override
     public void executeCurrentNode() {
         ((MPILogicTask) currentNode).setProcessExecutor(processExecutor);
         //Execute current node
@@ -95,49 +122,9 @@ public class MPILogicProcessModel extends ProcessModelImpl {
         }
     }
 
-    private void resourceRequest(List<Term> terms) {
-        Request r;
-        Map<String, String> resultRequest;
+    protected void resourceRequest(List<Term> terms) { }
 
-        String url = terms.get(3).getName();
-        if (terms.get(4).getName() != "")
-            url.concat("?"+terms.get(4).getName());
-        String type = terms.get(6).getName();
-        String headers = terms.get(5).getName()+"Authorization="+terms.get(0).getName()+" "+terms.get(2).getName();
-        String parameters = terms.get(7).getName();
-
-        try {
-            r = new Request(url,type,headers,parameters);
-            result = r.doRequest();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void accessTokenRequest(List<Term> terms) {
-        Request r;
-        Map<String, String> resultRequest;
-        String parameters = "grant_type="+terms.get(1).getName()+";"+
-                "client_id="+terms.get(0).getName()+";"+
-                "client_secret="+terms.get(2).getName()+";"+
-                "scope="+terms.get(4).getName();
-
-        try {
-            r = new Request(terms.get(3).getName(),"POST","",parameters);
-            resultRequest = JSONUtils.jsonStringToMap(r.doRequest());
-            long newExpireDate = Long.parseLong(resultRequest.get("expires_in")) + System.currentTimeMillis()/1000;
-
-            ((MPILogicInputTask) flows.get(currentNode).get(0)).addArguments(
-                new Object[]{
-                    resultRequest.get("token_type"),
-                    newExpireDate,
-                    resultRequest.get("access_token")
-                }
-            );
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-    }
+    protected void accessTokenRequest(List<Term> terms) { }
 
     private void sanitizeTerms(List<Term> terms) {
         for(Term t: terms){

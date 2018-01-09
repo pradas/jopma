@@ -3,42 +3,55 @@ package main.java.com.pradas.jopma.protocol;
 import main.java.com.pradas.jopma.artifacts.*;
 import main.java.com.pradas.jopma.utils.MPILogicFilesPath;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ClientCredentialsGrant implements Grant {
-    private String url;
-    private String parameters;
-    private String type;
-    private String headers;
-    private String body;
     private String result;
-
+    private ProcessModelImpl pmi;
     private final MPILogicFilesPath filesPath;
 
     public String getResult() {
         return result;
     }
 
-    public ClientCredentialsGrant(String url, String parameters, String type, String headers, String body) {
+    public ClientCredentialsGrant() {
         super();
+
+        List<String> list = null;
+        try {
+            list = Files.readAllLines(Paths.get("src/definitions/clientcredentialsgrant/oauth-client.txt"), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         filesPath = new MPILogicFilesPath(
                 "src/definitions/clientcredentialsgrant/oauth-constraints.db",
                 "src/definitions/clientcredentialsgrant/oauth-behaviour.db",
-                "src/definitions/db-connection.txt",
-                "src/definitions/clientcredentialsgrant/oauth-db-map.txt"
+                "src/definitions/clientcredentialsgrant/db-connection.txt",
+                "src/definitions/clientcredentialsgrant/oauth-db-map.txt",
+                list.get(0)
         );
 
-        this.url = url;
-        this.parameters = parameters;
-        this.type = type;
-        this.headers = headers;
-        this.body = body;
+        configureGrant();
     }
 
     @Override
-    public String makeRequest() {
+    public String makeRequest(String url, String parameters, String type, String headers, String body) {
+        ((MPILogicInputTask) pmi.getCurrentNode()).addArguments(new Object[]{url, parameters, headers, type, body});
+
+        pmi.run();
+
+        result = pmi.getResult();
+        return result;
+    }
+
+    private void configureGrant() {
         NodeImpl start, hasValidToken, getClientRequest, saveToken, doRequest;
         start = new MPILogicInputTask("start");
         hasValidToken = new MPILogicXORTask("hasvalidtoken", new Object[]{System.currentTimeMillis()/1000});
@@ -66,14 +79,7 @@ public class ClientCredentialsGrant implements Grant {
         flows.put(saveToken, flowsSaveToken);
         flows.put(doRequest, flowsDoRequest);
 
-        ProcessModelImpl pmi = new MPILogicProcessModel(filesPath, flows, start, doRequest);
-
-        ((MPILogicInputTask) start).addArguments(new Object[]{url, parameters, headers, type, body});
-
-        pmi.run();
-
-        result = pmi.getResult();
-        return result;
+        pmi = new MPILogicCCGProcessModel(filesPath, flows, start, doRequest);
     }
 
 }

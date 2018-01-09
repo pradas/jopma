@@ -1,5 +1,6 @@
 package main.java.com.pradas.jopma.protocol;
 
 public interface Grant {
-    public String makeRequest();
+    String makeRequest(String url, String parameters, String type, String headers, String body);
+
 }

@@ -2,7 +2,7 @@ package main.java.com.pradas.jopma.artifacts;
 
 import java.util.*;
 
-public class ProcessModelImpl implements ProcessModel {
+public abstract class ProcessModelImpl implements ProcessModel {
     protected HashMap<NodeImpl, ArrayList<NodeImpl>> flows;
     protected NodeImpl currentNode;
     protected NodeImpl endNode;
@@ -19,6 +19,10 @@ public class ProcessModelImpl implements ProcessModel {
     @Override
     public String getResult() {
         return result;
+    }
+
+    public NodeImpl getCurrentNode() {
+        return currentNode;
     }
 
     @Override

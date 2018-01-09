@@ -8,4 +8,9 @@ public interface ProcessModel {
     void executeCurrentNode();
 
     String getResult();
+
+    Boolean hasValidToken();
+
+    Boolean hasToken();
+
 }
