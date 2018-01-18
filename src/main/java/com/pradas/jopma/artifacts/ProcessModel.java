@@ -9,8 +9,4 @@ public interface ProcessModel {
 
     String getResult();
 
-    Boolean hasValidToken();
-
-    Boolean hasToken();
-
 }

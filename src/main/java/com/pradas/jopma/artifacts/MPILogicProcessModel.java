@@ -6,32 +6,25 @@ import edu.upc.mpi.operationexecutor.Controller;
 import edu.upc.mpi.operationexecutor.DataInitializerFinalizer;
 import edu.upc.mpi.operationexecutor.dataservice.sql.SQLDataController;
 import edu.upc.mpi.operationexecutor.logicoperationexecutor.ProcessExecutor;
-import main.java.com.pradas.jopma.utils.JSONUtils;
 import main.java.com.pradas.jopma.utils.MPILogicFilesPath;
-import main.java.com.pradas.jopma.utils.Request;
 import main.java.com.pradas.jopma.utils.StringUtils;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class MPILogicProcessModel extends ProcessModelImpl {
-
-    private final File umlSchema;        //Restriccions OCL del sistema
-    private final File behaviourSchema;    //Operacions el sistema
-    private final File dbConnection;        //Connexió MySQL
-    private final File umlSchemaToDataMap;   //Mapping classes UML a taules SQL
-    private final String oauthClientInsert;         //insert client
-    private ProcessExecutor processExecutor;
+    protected ProcessExecutor processExecutor;
 
     public MPILogicProcessModel(MPILogicFilesPath filesPath, HashMap<NodeImpl, ArrayList<NodeImpl>> flows, NodeImpl startNode, NodeImpl endNode) {
         super(flows, startNode, endNode);
 
-        umlSchema = new File(filesPath.getUmlSchema());        //Restriccions OCL del sistema
-        behaviourSchema = new File(filesPath.getBehaviourSchema());    //Operacions el sistema
-        dbConnection = new File(filesPath.getDbConnection());        //Connexió MySQL
-        umlSchemaToDataMap = new File(filesPath.getUmlSchemaToDataMap());   //Mapping classes UML a taules SQL
-        oauthClientInsert = filesPath.getOauthClientInsert();
+        File umlSchema = new File(filesPath.getUmlSchema());        //Restriccions OCL del sistema
+        File behaviourSchema = new File(filesPath.getBehaviourSchema());    //Operacions el sistema
+        File dbConnection = new File(filesPath.getDbConnection());        //Connexió MySQL
+        File umlSchemaToDataMap = new File(filesPath.getUmlSchemaToDataMap());   //Mapping classes UML a taules SQL
+        String oauthClientInsert = filesPath.getOauthClientInsert();
 
 
         try {
@@ -77,33 +70,6 @@ public class MPILogicProcessModel extends ProcessModelImpl {
     }
 
     @Override
-    public Boolean hasValidToken() {
-        NodeImpl validToken = null;
-        for ( NodeImpl key : flows.keySet() ) {
-            if (key.getName() == "hasvalidtoken") {
-                validToken = key;
-            }
-        }
-        ((MPILogicTask) validToken).setProcessExecutor(processExecutor);
-        validToken.execute();
-        return (Boolean) validToken.getResult();
-    }
-
-    @Override
-    public Boolean hasToken() {
-        NodeImpl hasToken = new MPILogicXORTask("gettoken");
-        ((MPILogicTask) hasToken).setProcessExecutor(processExecutor);
-        List<Atom> temp = null;
-        try {
-            temp = processExecutor.executeOperation("gettoken", new Object[]{});
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //hasToken.execute();
-        return (Boolean) hasToken.getResult();
-    }
-
-    @Override
     public void executeCurrentNode() {
         ((MPILogicTask) currentNode).setProcessExecutor(processExecutor);
         //Execute current node
@@ -116,15 +82,19 @@ public class MPILogicProcessModel extends ProcessModelImpl {
 
             if (taskName.toLowerCase().contains("client")) {
                 accessTokenRequest(terms);
+            } else if(taskName.toLowerCase().contains("refresh")) {
+                refreshTokenRequest(terms);
             } else if(taskName.toLowerCase().contains("token")) {
                 resourceRequest(terms);
             }
         }
     }
 
-    protected void resourceRequest(List<Term> terms) { }
+    protected void refreshTokenRequest(List<Term> terms){}
 
-    protected void accessTokenRequest(List<Term> terms) { }
+    protected void resourceRequest(List<Term> terms){}
+
+    protected void accessTokenRequest(List<Term> terms){}
 
     private void sanitizeTerms(List<Term> terms) {
         for(Term t: terms){

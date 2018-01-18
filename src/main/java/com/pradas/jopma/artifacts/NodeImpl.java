@@ -23,7 +23,8 @@ public abstract class NodeImpl implements Node {
     }
 
     public NodeImpl(String name, Object[] arguments) {
-        this(name);
+        super();
+        this.name = name;
         this.arguments = arguments;
     }
 }

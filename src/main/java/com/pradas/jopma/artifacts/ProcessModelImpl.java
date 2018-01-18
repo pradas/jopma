@@ -1,6 +1,7 @@
 package main.java.com.pradas.jopma.artifacts;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public abstract class ProcessModelImpl implements ProcessModel {
     protected HashMap<NodeImpl, ArrayList<NodeImpl>> flows;

@@ -1,43 +1,14 @@
 package main.java.com.pradas.jopma.protocol;
 
 import main.java.com.pradas.jopma.artifacts.*;
-import main.java.com.pradas.jopma.utils.MPILogicFilesPath;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-public class ResourceOwnerGrant implements Grant {
-    private String result;
-    private ProcessModelImpl pmi;
-    private final MPILogicFilesPath filesPath;
-
-    public String getResult() {
-        return result;
-    }
+public class ResourceOwnerGrant extends GrantImpl {
 
     public ResourceOwnerGrant() {
-        super();
-
-        List<String> list = null;
-        try {
-            list = Files.readAllLines(Paths.get("src/definitions/resourceownergrant/oauth-client.txt"), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        filesPath = new MPILogicFilesPath(
-                "src/definitions/resourceownergrant/oauth-constraints.db",
-                "src/definitions/resourceownergrant/oauth-behaviour.db",
-                "src/definitions/resourceownergrant/db-connection.txt",
-                "src/definitions/resourceownergrant/oauth-db-map.txt",
-                list.get(0)
-        );
-
+        super("src/definitions/resourceownergrant");
         configureGrant();
     }
 
@@ -51,8 +22,9 @@ public class ResourceOwnerGrant implements Grant {
         return result;
     }
 
-    public Boolean hasValidToken() {
-        return pmi.hasValidToken();
+    @Override
+    public Boolean needAuthentication() {
+        return ((MPILogicROGProcessModel) pmi).needAuthentication();
     }
 
     public void addUserCredentials(String user, String pass) {
@@ -61,21 +33,29 @@ public class ResourceOwnerGrant implements Grant {
     }
 
     private void configureGrant() {
-        NodeImpl start, hasValidToken, getClientRequest, saveToken, doRequest;
+        NodeImpl start, hasValidToken, hasToken, getRefreshRequest, getClientRequest, saveToken, doRequest;
         start = new MPILogicInputTask("start");
         hasValidToken = new MPILogicXORTask("hasvalidtoken", new Object[]{System.currentTimeMillis()/1000});
+        hasToken = new MPILogicXORTask("gettoken");
+        getRefreshRequest = new MPILogicTask("getrefreshrequest");
         getClientRequest = new MPILogicTask("getclientrequest");
         saveToken = new MPILogicInputTask("savetoken");
         doRequest = new MPILogicTask("gettokenandrequest");
 
         HashMap<NodeImpl, ArrayList<NodeImpl>> flows = new HashMap<>();
-        ArrayList<NodeImpl> flowsStart, flowsHasValidToken, flowsGetClientRequest, flowsSaveToken, flowsDoRequest;
+        ArrayList<NodeImpl> flowsStart, flowsHasValidToken, flowsHasToken, flowsRefreshRequest,
+                flowsGetClientRequest, flowsSaveToken, flowsDoRequest;
 
         flowsStart = new ArrayList<>();
         flowsStart.add(hasValidToken);
         flowsHasValidToken = new ArrayList<>();
         flowsHasValidToken.add(doRequest);
-        flowsHasValidToken.add(getClientRequest);
+        flowsHasValidToken.add(hasToken);
+        flowsHasToken = new ArrayList<>();
+        flowsHasToken.add(getRefreshRequest);
+        flowsHasToken.add(getClientRequest);
+        flowsRefreshRequest = new ArrayList<>();
+        flowsRefreshRequest.add(saveToken);
         flowsGetClientRequest = new ArrayList<>();
         flowsGetClientRequest.add(saveToken);
         flowsSaveToken = new ArrayList<>();
@@ -84,6 +64,8 @@ public class ResourceOwnerGrant implements Grant {
 
         flows.put(start, flowsStart);
         flows.put(hasValidToken, flowsHasValidToken);
+        flows.put(hasToken, flowsHasToken);
+        flows.put(getRefreshRequest, flowsRefreshRequest);
         flows.put(getClientRequest, flowsGetClientRequest);
         flows.put(saveToken, flowsSaveToken);
         flows.put(doRequest, flowsDoRequest);

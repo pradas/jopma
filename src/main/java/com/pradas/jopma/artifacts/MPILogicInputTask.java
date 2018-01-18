@@ -1,6 +1,6 @@
 package main.java.com.pradas.jopma.artifacts;
 
-public class MPILogicInputTask extends MPILogicTask implements InputNode {
+public class MPILogicInputTask extends MPILogicTask {
 
     public MPILogicInputTask(String methodName) {
         super(methodName);
@@ -10,7 +10,6 @@ public class MPILogicInputTask extends MPILogicTask implements InputNode {
         super(methodName, arguments);
     }
 
-    @Override
     public void addArguments(Object[] arguments) {
         this.arguments = arguments;
     }
