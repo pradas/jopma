@@ -12,6 +12,8 @@ public class GrantFactory {
             return new ResourceOwnerGrant();
         } else if (grantType.equalsIgnoreCase("AuthorizationCodeGrant")) {
             return null;
+        } else if (grantType.equalsIgnoreCase("ParseGrant")) {
+            return new GrantParser("");
         }
 
         return null;

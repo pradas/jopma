@@ -12,15 +12,17 @@ import java.util.List;
 public abstract class GrantImpl implements Grant{
     protected String result;
     protected ProcessModelImpl pmi;
-    protected final MPILogicFilesPath filesPath;
+    protected MPILogicFilesPath filesPath;
 
     public String getResult() {
         return result;
     }
 
-    public GrantImpl(String path) {
+    public GrantImpl() {
         super();
+    }
 
+    protected void setPath(String path) {
         List<String> list = null;
         try {
             list = Files.readAllLines(Paths.get(path+"/oauth-client.txt"), StandardCharsets.UTF_8);
@@ -34,6 +36,5 @@ public abstract class GrantImpl implements Grant{
                 path+"/db-connection.txt",
                 path+"/oauth-db-map.txt",
                 list.get(0)
-        );
-    }
+        );    }
 }

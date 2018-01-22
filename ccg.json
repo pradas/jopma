@@ -1,0 +1,20 @@
+{
+    "protocol" : "clientcredentialsgrant",
+    "definitions_path" : "src/definitions/clientcredentialsgrant",
+    "proces_model" : {
+        "nodes" : [
+            {"id" : 1, "node_type" : "input_task", "contract_name" : "start", "arguments" : []},
+            {"id" : 2, "node_type" : "xor_task", "contract_name" : "hasvalidtoken", "arguments" : [ "currenttime" ]},
+            {"id" : 3, "node_type" : "task", "contract_name" : "getclientrequest", "arguments" : []},
+            {"id" : 4, "node_type" : "input_task", "contract_name" : "savetoken", "arguments" : []},
+            {"id" : 5, "node_type" : "task", "contract_name" : "gettokenandrequest", "arguments" : []}
+        ],
+        "flows" : [
+            {"node_id" : 1, "flow" : [{"node_id" : 2}]},
+            {"node_id" : 2, "flow" : [{"node_id" : 5}, {"node_id" : 3}]},
+            {"node_id" : 3, "flow" : [{"node_id" : 4}]},
+            {"node_id" : 4, "flow" : [{"node_id" : 5}]},
+            {"node_id" : 5, "flow" : []}
+        ]
+    }
+}

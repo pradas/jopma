@@ -8,7 +8,8 @@ import java.util.HashMap;
 public class ClientCredentialsGrant extends GrantImpl {
 
     public ClientCredentialsGrant() {
-        super("src/definitions/clientcredentialsgrant");
+        super();
+        setPath("src/definitions/clientcredentialsgrant");
         configureGrant();
     }
 

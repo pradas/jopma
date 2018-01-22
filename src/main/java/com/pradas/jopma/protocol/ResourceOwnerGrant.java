@@ -8,7 +8,8 @@ import java.util.HashMap;
 public class ResourceOwnerGrant extends GrantImpl {
 
     public ResourceOwnerGrant() {
-        super("src/definitions/resourceownergrant");
+        super();
+        setPath("src/definitions/resourceownergrant");
         configureGrant();
     }
 
@@ -28,8 +29,7 @@ public class ResourceOwnerGrant extends GrantImpl {
     }
 
     public void addUserCredentials(String user, String pass) {
-        ((MPILogicROGProcessModel) pmi).setUsername(user);
-        ((MPILogicROGProcessModel) pmi).setPassword(pass);
+        ((MPILogicROGProcessModel) pmi).addCredentials(user, pass);
     }
 
     private void configureGrant() {

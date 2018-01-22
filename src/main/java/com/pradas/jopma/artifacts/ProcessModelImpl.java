@@ -45,4 +45,10 @@ public abstract class ProcessModelImpl implements ProcessModel {
     public void executeCurrentNode() {
         currentNode.execute();
     }
+
+    public Boolean needAuthentication() {
+        return false;
+    }
+
+    public void addCredentials(String username, String Password) { }
 }

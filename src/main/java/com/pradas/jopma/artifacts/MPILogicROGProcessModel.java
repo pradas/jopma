@@ -20,15 +20,13 @@ public class MPILogicROGProcessModel extends MPILogicProcessModel {
         super(filesPath, flows, startNode, endNode);
     }
 
-    public void setUsername(String username) {
+    @Override
+    public void addCredentials(String username, String password){
         this.username = username;
-    }
-
-    public void setPassword(String password) {
         this.password = password;
     }
 
-
+    @Override
     public Boolean needAuthentication() {
         MPILogicXORTask hasValidToken, hasToken;
         hasValidToken = new MPILogicXORTask("hasvalidtoken", new Object[]{System.currentTimeMillis()/1000});
