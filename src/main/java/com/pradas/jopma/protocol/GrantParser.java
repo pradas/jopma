@@ -1,6 +1,5 @@
 package main.java.com.pradas.jopma.protocol;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import main.java.com.pradas.jopma.artifacts.*;
 
@@ -16,6 +15,10 @@ public class GrantParser extends GrantImpl {
     private HashMap<Integer, NodeImpl> nodes;
     private HashMap<Integer, ArrayList<NodeImpl>> flows;
 
+    /**
+     * Contructor to initialize the grant
+     * @param grantFile path to the description of the grant
+     */
     public GrantParser(String grantFile) {
         super();
         this.grantFile = grantFile;
@@ -24,9 +27,18 @@ public class GrantParser extends GrantImpl {
         parseGrant();
     }
 
+    /**
+     * Configure a request and run the parsed grant.
+     * @param url url of the request.
+     * @param parameters parameters of the request.
+     * @param type type of the request.
+     * @param headers headers of the request.
+     * @param body body of the request.
+     * @return A string with the result of the execution of the grant.
+     */
     @Override
     public String makeRequest(String url, String parameters, String type, String headers, String body) {
-        ((MPILogicInputTask) pmi.getCurrentNode()).addArguments(new Object[]{url, parameters, headers, type, body});
+        ((MPILogicInputTask) pmi.getCurrentNode()).setArguments(new Object[]{url, parameters, headers, type, body});
 
         pmi.run();
 
@@ -34,22 +46,32 @@ public class GrantParser extends GrantImpl {
         return result;
     }
 
+    /**
+     * Method to check if a grant need authentication.
+     * @return Return true if the grant need authentication, otherwise return false.
+     */
     @Override
     public Boolean needAuthentication() {
         return pmi.needAuthentication();
     }
 
+    /**
+     * Method to parse the file into a Grant
+     */
     private void parseGrant() {
-        GrantConfig gc = null;
+        GrantMapper gc = null;
         try {
-            gc = new ObjectMapper().readValue(new File(grantFile), GrantConfig.class);
+            //Map the input json file into an instance of GrantMapper
+            gc = new ObjectMapper().readValue(new File(grantFile), GrantMapper.class);
 
             setPath(gc.getDefinitionsPath());
 
+            //Create all the nodes of the parsed grant
             ArrayList<HashMap<String, Object>> gcNodes = (ArrayList<HashMap<String, Object>>) gc.getProcesModel().get("nodes");
             for (HashMap<String, Object> node: gcNodes) {
                 String name = (String) node.get("contract_name");
 
+                //Configure the arguments of the node
                 Object[] arguments = new Object[((ArrayList<String>) node.get("arguments")).size()];
                 for (int i = 0; i < ((ArrayList<String>) node.get("arguments")).size(); i++) {
                     String arg = ((ArrayList<String>) node.get("arguments")).get(i);
@@ -60,6 +82,7 @@ public class GrantParser extends GrantImpl {
                     }
                 }
 
+                //Configure the type of node
                 NodeImpl n = null;
                 if (node.get("node_type").equals("task")) {
                     n = new MPILogicTask(name, arguments);
@@ -68,9 +91,11 @@ public class GrantParser extends GrantImpl {
                 } else if (node.get("node_type").equals("xor_task")) {
                     n = new MPILogicXORTask(name, arguments);
                 }
+                //Save the parsed node.
                 nodes.put((Integer) node.get("id"),n);
             }
 
+            //Create all the flows of the parsed grant.
             ArrayList<HashMap<String, Object>> gcFlows = (ArrayList<HashMap<String, Object>>) gc.getProcesModel().get("flows");
             for (HashMap<String, Object> flow: gcFlows) {
                 ArrayList<NodeImpl> f = new ArrayList<>();
@@ -81,6 +106,7 @@ public class GrantParser extends GrantImpl {
                 flows.put((Integer) flow.get("node_id"),f);
             }
 
+            //Select the initial and finish node by id
             HashMap<NodeImpl, ArrayList<NodeImpl>> processFlows = new HashMap<>();
             int firstNodeId = -1;
             int lastNodeId = -1;
@@ -91,6 +117,7 @@ public class GrantParser extends GrantImpl {
                 lastNodeId = entry.getKey();
             }
 
+            //Select and create an instance of a ProcessModel depending on the type of the parsed grant
             if (gc.getProtocol().equals("clientcredentialsgrant")) {
                 pmi = new MPILogicCCGProcessModel(filesPath, processFlows, nodes.get(firstNodeId), nodes.get(lastNodeId));
             } else if (gc.getProtocol().equals("resourceownergrant")) {
@@ -102,6 +129,11 @@ public class GrantParser extends GrantImpl {
         }
     }
 
+    /**
+     * Add user credentials to the grant
+     * @param user username to consume the resource server, the username must be valid
+     * @param pass password to consume the resource server, the password must be valid
+     */
     public void addUserCredentials(String user, String pass) {
         pmi.addCredentials(user, pass);
     }

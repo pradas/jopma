@@ -2,7 +2,10 @@ package main.java.com.pradas.jopma.protocol;
 
 import java.util.HashMap;
 
-public class GrantConfig {
+/**
+ * Skeleton class to parse the json file
+ */
+public class GrantMapper {
     public String protocol;
     public String definitions_path;
     public HashMap<String, Object> proces_model;

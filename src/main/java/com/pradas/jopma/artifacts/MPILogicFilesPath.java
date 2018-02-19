@@ -1,11 +1,14 @@
-package main.java.com.pradas.jopma.utils;
+package main.java.com.pradas.jopma.artifacts;
 
+/**
+ * Class to specify the paths to the files needed to configure the MPILogic library
+ */
 public class MPILogicFilesPath {
     protected String umlSchema;        //Restriccions OCL del sistema
     protected String behaviourSchema;    //Operacions el sistema
     protected String dbConnection;        //Connexió MySQL
     protected String umlSchemaToDataMap;//Mapping classes UML a taules SQL
-    protected String oauthClientInsert;
+    protected String oauthClientInsert; //Insert of the client table
 
     public MPILogicFilesPath(String umlSchema, String behaviourSchema, String dbConnection, String umlSchemaToDataMap, String oauthClientInsert) {
         super();
